@@ -378,6 +378,18 @@ describe('Accessibility (HTML)', () => {
     expect(html).toMatch(/aria-label/);
     expect(html).toMatch(/theme-btn/);
   });
+
+  it('name display has outline:none to prevent focus rectangle', () => {
+    const nameEl = doc.getElementById('name-display');
+    expect(nameEl).not.toBeNull();
+    const html = readFileSync(resolve(__dirname, '../src/index.html'), 'utf-8');
+    expect(html).toMatch(/#name-display\s*\{[^}]*outline:\s*none/);
+  });
+
+  it('has a toast element for notifications', () => {
+    const toastEl = doc.getElementById('toast');
+    expect(toastEl).not.toBeNull();
+  });
 });
 
 // ===========================================================================
@@ -442,6 +454,18 @@ describe('Fullscreen', () => {
     delete document.documentElement.requestFullscreen;
   });
 
+  it('enterFullscreen falls back to webkitRequestFullscreen', async () => {
+    delete document.documentElement.requestFullscreen;
+    const mockWebkit = vi.fn().mockResolvedValue(undefined);
+    document.documentElement.webkitRequestFullscreen = mockWebkit;
+
+    const { enterFullscreen } = await import('../src/lib.js');
+    enterFullscreen();
+    expect(mockWebkit).toHaveBeenCalled();
+
+    delete document.documentElement.webkitRequestFullscreen;
+  });
+
   it('exitFullscreen calls document.exitFullscreen when in fullscreen', async () => {
     const mockExitFullscreen = vi.fn().mockResolvedValue(undefined);
     document.exitFullscreen = mockExitFullscreen;
@@ -461,8 +485,33 @@ describe('Fullscreen', () => {
     delete document.exitFullscreen;
   });
 
+  it('exitFullscreen falls back to webkitExitFullscreen', async () => {
+    delete document.exitFullscreen;
+    const mockWebkitExit = vi.fn().mockResolvedValue(undefined);
+    document.webkitExitFullscreen = mockWebkitExit;
+    Object.defineProperty(document, 'fullscreenElement', {
+      value: null,
+      configurable: true,
+    });
+    Object.defineProperty(document, 'webkitFullscreenElement', {
+      value: document.documentElement,
+      configurable: true,
+    });
+
+    const { exitFullscreen } = await import('../src/lib.js');
+    exitFullscreen();
+    expect(mockWebkitExit).toHaveBeenCalled();
+
+    Object.defineProperty(document, 'webkitFullscreenElement', {
+      value: null,
+      configurable: true,
+    });
+    delete document.webkitExitFullscreen;
+  });
+
   it('does not throw when Fullscreen API is unavailable', async () => {
     delete document.documentElement.requestFullscreen;
+    delete document.documentElement.webkitRequestFullscreen;
     const { enterFullscreen } = await import('../src/lib.js');
     expect(() => enterFullscreen()).not.toThrow();
   });

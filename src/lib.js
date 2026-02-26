@@ -130,15 +130,23 @@ export function releaseWakeLock() {
 
 export function enterFullscreen() {
   if (typeof document === 'undefined') return;
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen().catch(() => {});
+  const el = document.documentElement;
+  const rfs = el.requestFullscreen
+    || el.webkitRequestFullscreen
+    || el.msRequestFullscreen;
+  if (rfs) {
+    rfs.call(el).catch(() => {});
   }
 }
 
 export function exitFullscreen() {
   if (typeof document === 'undefined') return;
-  if (document.fullscreenElement) {
-    document.exitFullscreen().catch(() => {});
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsEl) {
+    const efs = document.exitFullscreen
+      || document.webkitExitFullscreen
+      || document.msExitFullscreen;
+    if (efs) efs.call(document).catch(() => {});
   }
 }
 

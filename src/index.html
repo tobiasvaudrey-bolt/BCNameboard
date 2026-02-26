@@ -43,6 +43,7 @@
       padding: 5vw;
       max-width: 100%;
       max-height: 100%;
+      outline: none;
     }
 
     /* ----- Toolbar (display mode) ----- */
@@ -197,12 +198,34 @@
     }
     #install-banner:hover { background: #244d73; }
 
+    /* ----- Toast notification ----- */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.95);
+      color: #111;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+      z-index: 100;
+      text-align: center;
+      white-space: nowrap;
+    }
+    #toast.visible { opacity: 1; }
+
     @media (orientation: landscape) {
       #name-display { padding: 3vh 5vw; }
     }
   </style>
 </head>
 <body>
+
+  <div id="toast"></div>
 
   <!-- ===== DISPLAY MODE ===== -->
   <div id="display-screen" class="screen">
@@ -261,6 +284,7 @@
     const editScreen    = document.getElementById('edit-screen');
     const nameDisplay   = document.getElementById('name-display');
     const toolbar       = document.getElementById('toolbar');
+    const toast         = document.getElementById('toast');
     const inputForm     = document.getElementById('input-form');
     const nameInput     = document.getElementById('name-input');
     const editForm      = document.getElementById('edit-form');
@@ -272,6 +296,16 @@
 
     let currentTheme = 'classic';
     let hideToolbarTimer = null;
+    let toastTimer = null;
+    let forceDisplay = false;
+
+    // ----- Toast -----
+    function showToast(msg, durationMs = 2500) {
+      toast.textContent = msg;
+      toast.classList.add('visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('visible'), durationMs);
+    }
 
     // ----- Theme pickers -----
     function buildThemePickers() {
@@ -323,22 +357,72 @@
       });
     }
 
-    // ----- Toolbar auto-hide -----
+    // ----- Toolbar: tap-to-toggle with auto-hide -----
     function showToolbar() {
       toolbar.classList.remove('hidden');
       clearTimeout(hideToolbarTimer);
       hideToolbarTimer = setTimeout(() => toolbar.classList.add('hidden'), 3000);
     }
 
-    displayScreen.addEventListener('click', showToolbar);
-    displayScreen.addEventListener('mousemove', showToolbar);
+    function hideToolbar() {
+      toolbar.classList.add('hidden');
+      clearTimeout(hideToolbarTimer);
+    }
 
-    // ----- Core render -----
-    function render(requestFullscreenOnDisplay = false) {
+    function toggleToolbar(e) {
+      if (e.target.closest('#toolbar')) return;
+      if (toolbar.classList.contains('hidden')) {
+        showToolbar();
+      } else {
+        hideToolbar();
+      }
+    }
+
+    displayScreen.addEventListener('click', toggleToolbar);
+    displayScreen.addEventListener('mousemove', () => {
+      if (toolbar.classList.contains('hidden')) return;
+      clearTimeout(hideToolbarTimer);
+      hideToolbarTimer = setTimeout(() => toolbar.classList.add('hidden'), 3000);
+    });
+
+    // ----- Show display (forced, bypasses orientation check) -----
+    function showDisplay(name) {
+      forceDisplay = true;
+      currentTheme = resolveTheme(parseHash(location.hash).theme);
+
+      displayScreen.classList.add('active');
+      inputScreen.classList.remove('active');
+      editScreen.classList.remove('active');
+
+      nameDisplay.textContent = name;
+      applyTheme();
+      fitText(nameDisplay, displayScreen);
+      nameDisplay.focus();
+      requestWakeLock();
+      enterFullscreen();
+      hideToolbar();
+
+      if (getOrientation() === 'portrait') {
+        showToast('Rotate sideways for best view');
+      }
+    }
+
+    // ----- Core render (orientation-driven) -----
+    function render() {
       const hashState = parseHash(location.hash);
       const orientation = getOrientation();
-      const mode = getMode(hashState, orientation);
 
+      if (forceDisplay && hashState.name) {
+        if (orientation === 'landscape') forceDisplay = false;
+        nameDisplay.textContent = hashState.name;
+        currentTheme = resolveTheme(hashState.theme);
+        applyTheme();
+        fitText(nameDisplay, displayScreen);
+        return;
+      }
+      forceDisplay = false;
+
+      const mode = getMode(hashState, orientation);
       currentTheme = resolveTheme(hashState.theme);
 
       displayScreen.classList.toggle('active', mode === 'display');
@@ -351,8 +435,7 @@
         fitText(nameDisplay, displayScreen);
         nameDisplay.focus();
         requestWakeLock();
-        showToolbar();
-        if (requestFullscreenOnDisplay) enterFullscreen();
+        hideToolbar();
       } else {
         releaseWakeLock();
         exitFullscreen();
@@ -370,14 +453,14 @@
       buildThemePickers();
     }
 
-    // ----- Form submissions -----
+    // ----- Form submissions: always force display mode -----
     inputForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = nameInput.value.trim();
       if (!name) return;
       addRecentName(name);
       location.hash = buildHash(name, currentTheme);
-      render(true);
+      showDisplay(name);
     });
 
     editForm.addEventListener('submit', (e) => {
@@ -386,12 +469,13 @@
       if (!name) return;
       addRecentName(name);
       location.hash = buildHash(name, currentTheme);
-      render(true);
+      showDisplay(name);
     });
 
-    // ----- Edit button (desktop) -----
+    // ----- Edit button (desktop / toolbar) -----
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      forceDisplay = false;
       const hashState = parseHash(location.hash);
       editScreen.classList.add('active');
       displayScreen.classList.remove('active');
@@ -420,15 +504,15 @@
     }
     window.matchMedia('(orientation: portrait)').addEventListener('change', () => render());
     window.addEventListener('resize', debounce(() => {
-      const mode = getMode(parseHash(location.hash), getOrientation());
-      if (mode === 'display') fitText(nameDisplay, displayScreen);
+      if (displayScreen.classList.contains('active')) {
+        fitText(nameDisplay, displayScreen);
+      }
     }, 100));
 
     // ----- Visibility change (re-acquire wake lock) -----
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        const mode = getMode(parseHash(location.hash), getOrientation());
-        if (mode === 'display') requestWakeLock();
+      if (document.visibilityState === 'visible' && displayScreen.classList.contains('active')) {
+        requestWakeLock();
       }
     });
 
