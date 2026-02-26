@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 export const THEMES = {
+  chauffeur:       { name: 'Chauffeur',      bg: '#1C110A', text: '#FFFFFF' },
   classic:         { name: 'Classic',        bg: '#000000', text: '#FFFFFF' },
   inverted:        { name: 'Inverted',       bg: '#FFFFFF', text: '#000000' },
   'airport-blue':  { name: 'Airport Blue',   bg: '#003366', text: '#FFFFFF' },
@@ -38,10 +39,10 @@ export function buildHash(name, theme) {
 // ---------------------------------------------------------------------------
 
 export function getDefaultTheme() {
-  if (typeof localStorage === 'undefined') return 'classic';
+  if (typeof localStorage === 'undefined') return 'chauffeur';
   const stored = localStorage.getItem('nameboard-theme');
   if (stored && THEMES[stored]) return stored;
-  return 'classic';
+  return 'chauffeur';
 }
 
 export function saveTheme(slug) {

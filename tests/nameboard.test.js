@@ -138,9 +138,9 @@ describe('THEMES', () => {
 });
 
 describe('getDefaultTheme', () => {
-  it('returns "classic" when no localStorage value', () => {
+  it('returns "chauffeur" when no localStorage value', () => {
     localStorage.clear();
-    expect(getDefaultTheme()).toBe('classic');
+    expect(getDefaultTheme()).toBe('chauffeur');
   });
 
   it('returns localStorage value when set', () => {
@@ -149,9 +149,9 @@ describe('getDefaultTheme', () => {
     localStorage.clear();
   });
 
-  it('returns "classic" for invalid localStorage value', () => {
+  it('returns "chauffeur" for invalid localStorage value', () => {
     localStorage.setItem('nameboard-theme', 'nonexistent');
-    expect(getDefaultTheme()).toBe('classic');
+    expect(getDefaultTheme()).toBe('chauffeur');
     localStorage.clear();
   });
 });

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'nameboard-v1';
+const CACHE_VERSION = 'nameboard-v3';
 const ASSETS = [
   './',
   './index.html',
