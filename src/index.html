@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Nameboard</title>
+  <link rel="manifest" href="./manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100dvh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* ----- Shared screen base ----- */
+    .screen {
+      display: none;
+      width: 100%; height: 100dvh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background-color .2s, color .2s;
+    }
+    .screen.active { display: flex; }
+
+    /* ----- Display mode ----- */
+    #display-screen {
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: default;
+    }
+
+    #name-display {
+      font-weight: 700;
+      text-align: center;
+      word-break: break-word;
+      padding: 5vw;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* ----- Toolbar (display mode) ----- */
+    #toolbar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(0,0,0,0.25);
+      opacity: 1;
+      transition: opacity .3s;
+    }
+    #toolbar.hidden { opacity: 0; pointer-events: none; }
+
+    .theme-btn {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: transform .15s;
+    }
+    .theme-btn:hover, .theme-btn:focus { transform: scale(1.2); }
+    .theme-btn.active { border-color: #fff; border-width: 3px; }
+
+    .toolbar-btn {
+      background: none; border: none;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .toolbar-btn:hover { color: #fff; background: rgba(255,255,255,0.15); }
+
+    /* ----- Input / Edit mode ----- */
+    #input-screen, #edit-screen {
+      background: #111; color: #fff;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .form-container h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .form-container .hint {
+      font-size: 0.875rem;
+      opacity: 0.6;
+      text-align: center;
+    }
+
+    .form-container label {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      align-self: flex-start;
+    }
+
+    .form-container form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-container input[type="text"] {
+      width: 100%;
+      font-size: 1.25rem;
+      padding: 12px 16px;
+      border: 2px solid #444;
+      border-radius: 8px;
+      background: #222;
+      color: #fff;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-container input[type="text"]:focus { border-color: #4a9eff; }
+
+    .form-container button[type="submit"] {
+      width: 100%;
+      font-size: 1.125rem;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #4a9eff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .form-container button[type="submit"]:hover { background: #3580d4; }
+
+    .theme-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .recent-list button {
+      background: #222;
+      border: 1px solid #333;
+      color: #ccc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 1rem;
+    }
+    .recent-list button:hover { background: #333; color: #fff; }
+
+    .copy-link-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .copy-link-btn:hover { border-color: #888; color: #fff; }
+
+    /* ----- Install banner ----- */
+    #install-banner {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      padding: 10px 16px;
+      background: #1a3a5c;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    #install-banner:hover { background: #244d73; }
+
+    @media (orientation: landscape) {
+      #name-display { padding: 3vh 5vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== DISPLAY MODE ===== -->
+  <div id="display-screen" class="screen">
+    <div id="name-display" role="heading" aria-level="1" tabindex="-1"></div>
+    <div id="toolbar">
+      <div id="theme-picker-display" class="theme-row"></div>
+      <button class="toolbar-btn" id="copy-btn-display" title="Copy link">&#128279;</button>
+      <button class="toolbar-btn" id="edit-btn" title="Edit name">&#9998;</button>
+    </div>
+  </div>
+
+  <!-- ===== INPUT MODE ===== -->
+  <div id="input-screen" class="screen">
+    <div class="form-container">
+      <h1>Nameboard</h1>
+      <p class="hint">Type a name, then turn your phone sideways</p>
+      <label for="name-input">Name</label>
+      <form id="input-form">
+        <input type="text" id="name-input" autocapitalize="words" autocomplete="off" spellcheck="false" placeholder="e.g. John Smith">
+        <button type="submit">Show</button>
+      </form>
+      <div id="theme-picker-input" class="theme-row"></div>
+      <div id="install-banner">Add to Home Screen for offline use</div>
+      <div id="recent-input" class="recent-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== EDIT MODE ===== -->
+  <div id="edit-screen" class="screen">
+    <div class="form-container">
+      <h1>Edit Name</h1>
+      <p class="hint">Rotate sideways to display</p>
+      <label for="edit-input">Name</label>
+      <form id="edit-form">
+        <input type="text" id="edit-input" autocapitalize="words" autocomplete="off" spellcheck="false">
+        <button type="submit">Show</button>
+      </form>
+      <div id="theme-picker-edit" class="theme-row"></div>
+      <button class="copy-link-btn" id="copy-btn-edit">&#128279; Copy Link</button>
+      <div id="recent-edit" class="recent-list"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      parseHash, buildHash, THEMES, resolveTheme, saveTheme,
+      getMode, getOrientation, fitText,
+      requestWakeLock, releaseWakeLock,
+      enterFullscreen, exitFullscreen,
+      copyToClipboard, getRecentNames, addRecentName, debounce,
+    } from './lib.js';
+
+    // ----- DOM refs -----
+    const displayScreen = document.getElementById('display-screen');
+    const inputScreen   = document.getElementById('input-screen');
+    const editScreen    = document.getElementById('edit-screen');
+    const nameDisplay   = document.getElementById('name-display');
+    const toolbar       = document.getElementById('toolbar');
+    const inputForm     = document.getElementById('input-form');
+    const nameInput     = document.getElementById('name-input');
+    const editForm      = document.getElementById('edit-form');
+    const editInput     = document.getElementById('edit-input');
+    const editBtn       = document.getElementById('edit-btn');
+    const copyBtnDisp   = document.getElementById('copy-btn-display');
+    const copyBtnEdit   = document.getElementById('copy-btn-edit');
+    const installBanner = document.getElementById('install-banner');
+
+    let currentTheme = 'classic';
+    let hideToolbarTimer = null;
+
+    // ----- Theme pickers -----
+    function buildThemePickers() {
+      ['theme-picker-display', 'theme-picker-input', 'theme-picker-edit'].forEach((id) => {
+        const container = document.getElementById(id);
+        container.innerHTML = '';
+        for (const [slug, t] of Object.entries(THEMES)) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'theme-btn' + (slug === currentTheme ? ' active' : '');
+          btn.style.background = t.bg;
+          btn.style.borderColor = t.text;
+          btn.setAttribute('aria-label', t.name + ' theme');
+          btn.dataset.theme = slug;
+          btn.addEventListener('click', () => selectTheme(slug));
+          container.appendChild(btn);
+        }
+      });
+    }
+
+    function selectTheme(slug) {
+      if (!THEMES[slug]) return;
+      currentTheme = slug;
+      saveTheme(slug);
+      const { name } = parseHash(location.hash);
+      if (name) location.hash = buildHash(name, slug);
+      applyTheme();
+      buildThemePickers();
+    }
+
+    function applyTheme() {
+      const t = THEMES[currentTheme] || THEMES.classic;
+      displayScreen.style.backgroundColor = t.bg;
+      displayScreen.style.color = t.text;
+      nameDisplay.style.textShadow = `0 0 20px ${t.text}40`;
+    }
+
+    // ----- Recent names -----
+    function renderRecent(containerId, handler) {
+      const el = document.getElementById(containerId);
+      const names = getRecentNames();
+      el.innerHTML = '';
+      names.forEach((n) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = n;
+        btn.addEventListener('click', () => handler(n));
+        el.appendChild(btn);
+      });
+    }
+
+    // ----- Toolbar auto-hide -----
+    function showToolbar() {
+      toolbar.classList.remove('hidden');
+      clearTimeout(hideToolbarTimer);
+      hideToolbarTimer = setTimeout(() => toolbar.classList.add('hidden'), 3000);
+    }
+
+    displayScreen.addEventListener('click', showToolbar);
+    displayScreen.addEventListener('mousemove', showToolbar);
+
+    // ----- Core render -----
+    function render(requestFullscreenOnDisplay = false) {
+      const hashState = parseHash(location.hash);
+      const orientation = getOrientation();
+      const mode = getMode(hashState, orientation);
+
+      currentTheme = resolveTheme(hashState.theme);
+
+      displayScreen.classList.toggle('active', mode === 'display');
+      inputScreen.classList.toggle('active', mode === 'input');
+      editScreen.classList.toggle('active', mode === 'edit');
+
+      if (mode === 'display') {
+        nameDisplay.textContent = hashState.name;
+        applyTheme();
+        fitText(nameDisplay, displayScreen);
+        nameDisplay.focus();
+        requestWakeLock();
+        showToolbar();
+        if (requestFullscreenOnDisplay) enterFullscreen();
+      } else {
+        releaseWakeLock();
+        exitFullscreen();
+      }
+
+      if (mode === 'input') {
+        renderRecent('recent-input', (n) => { nameInput.value = n; });
+      }
+
+      if (mode === 'edit') {
+        editInput.value = hashState.name || '';
+        renderRecent('recent-edit', (n) => { editInput.value = n; });
+      }
+
+      buildThemePickers();
+    }
+
+    // ----- Form submissions -----
+    inputForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) return;
+      addRecentName(name);
+      location.hash = buildHash(name, currentTheme);
+      render(true);
+    });
+
+    editForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = editInput.value.trim();
+      if (!name) return;
+      addRecentName(name);
+      location.hash = buildHash(name, currentTheme);
+      render(true);
+    });
+
+    // ----- Edit button (desktop) -----
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const hashState = parseHash(location.hash);
+      editScreen.classList.add('active');
+      displayScreen.classList.remove('active');
+      editInput.value = hashState.name || '';
+      renderRecent('recent-edit', (n) => { editInput.value = n; });
+      buildThemePickers();
+      releaseWakeLock();
+      exitFullscreen();
+    });
+
+    // ----- Copy buttons -----
+    async function handleCopy(btn) {
+      await copyToClipboard(location.href);
+      const original = btn.innerHTML;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.innerHTML = original; }, 1500);
+    }
+    copyBtnDisp.addEventListener('click', (e) => { e.stopPropagation(); handleCopy(copyBtnDisp); });
+    copyBtnEdit.addEventListener('click', () => handleCopy(copyBtnEdit));
+
+    // ----- Orientation / hash change -----
+    window.addEventListener('hashchange', () => render());
+
+    if (screen.orientation) {
+      screen.orientation.addEventListener('change', () => render());
+    }
+    window.matchMedia('(orientation: portrait)').addEventListener('change', () => render());
+    window.addEventListener('resize', debounce(() => {
+      const mode = getMode(parseHash(location.hash), getOrientation());
+      if (mode === 'display') fitText(nameDisplay, displayScreen);
+    }, 100));
+
+    // ----- Visibility change (re-acquire wake lock) -----
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        const mode = getMode(parseHash(location.hash), getOrientation());
+        if (mode === 'display') requestWakeLock();
+      }
+    });
+
+    // ----- Install prompt -----
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBanner.style.display = 'block';
+    });
+    installBanner.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBanner.style.display = 'none';
+    });
+
+    // ----- Service Worker registration -----
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    // ----- Initial render -----
+    render();
+  </script>
+</body>
+</html>

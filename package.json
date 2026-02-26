@@ -1,0 +1,16 @@
+{
+  "name": "nameboard",
+  "version": "1.0.0",
+  "description": "Airport name board PWA — hold up your phone to display a name",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "rm -rf dist && cp -r src/ dist/"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0",
+    "vitest": "^3.0.0"
+  }
+}
