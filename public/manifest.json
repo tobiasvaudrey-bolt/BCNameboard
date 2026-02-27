@@ -1,12 +1,12 @@
 {
-  "name": "Nameboard",
+  "name": "Bolt Chauffeur Nameboard",
   "short_name": "Nameboard",
-  "description": "Airport name board — hold up your phone to display a name",
+  "description": "Display passenger names for Bolt Chauffeur pickups — share a link or scan a QR code",
   "start_url": "./",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#1C110A",
-  "background_color": "#1C110A",
+  "theme_color": "#34BB78",
+  "background_color": "#111111",
   "icons": [
     {
       "src": "./icons/icon-192.svg",

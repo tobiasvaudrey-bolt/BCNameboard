@@ -1,8 +1,7 @@
-const CACHE_VERSION = 'nameboard-v3';
+const CACHE_VERSION = 'nameboard-v5';
 const ASSETS = [
   './',
   './index.html',
-  './lib.js',
   './manifest.json',
   './icons/icon-192.svg',
   './icons/icon-512.svg',
