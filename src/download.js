@@ -13,6 +13,13 @@ export const SIZE_PRESETS = {
   },
   tablet: {
     w: 2732, h: 2048,
+    helloScale: 0.065,
+    helloY: 0.055,
+    nameTop: 0.13,
+    nameBottom: 0.90,
+    nameMaxW: 0.90,
+    brandScale: 0.035,
+    brandY: 0.035,
   },
 };
 
