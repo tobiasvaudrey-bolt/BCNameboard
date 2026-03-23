@@ -4,6 +4,70 @@ import { QRSection } from './QROverlay';
 import { showToast } from './Toast';
 import { buildHash } from './hash';
 
+function InstallHint() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="w-full mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="
+          w-full flex items-center justify-center gap-2
+          text-white/30 text-xs font-sans
+          bg-transparent border-none cursor-pointer
+          py-2 transition-colors duration-150
+          hover:text-white/50
+        "
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Install as app for offline use
+        <svg
+          width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="mt-1 rounded-xl bg-white/[0.04] border border-white/10 p-4 flex flex-col gap-4 text-sm text-white/60 leading-relaxed">
+          <div>
+            <p className="text-white/80 font-semibold text-xs uppercase tracking-widest mb-2">iPad &amp; iPhone</p>
+            <ol className="list-decimal list-inside flex flex-col gap-1">
+              <li>
+                Tap the <span className="inline-flex items-center align-middle mx-0.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                  </svg>
+                </span> <span className="text-white/80">Share</span> button in Safari
+              </li>
+              <li>Tap <span className="text-white/80">&ldquo;Add to Home Screen&rdquo;</span></li>
+            </ol>
+          </div>
+          <div>
+            <p className="text-white/80 font-semibold text-xs uppercase tracking-widest mb-2">Android tablet</p>
+            <ol className="list-decimal list-inside flex flex-col gap-1">
+              <li>Tap the <span className="text-white/80">&#8942; menu</span> in Chrome</li>
+              <li>Tap <span className="text-white/80">&ldquo;Install app&rdquo;</span> or <span className="text-white/80">&ldquo;Add to Home Screen&rdquo;</span></li>
+            </ol>
+          </div>
+          <p className="text-white/40 text-xs">
+            Once installed, the nameboard works offline and opens in full screen.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function InputScreen({
   name,
   theme,
@@ -121,6 +185,8 @@ export function InputScreen({
         )}
 
         {shareUrl && <QRSection url={shareUrl} />}
+
+        <InstallHint />
       </div>
     </div>
   );
