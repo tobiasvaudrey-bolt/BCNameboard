@@ -1,5 +1,10 @@
 import { jsPDF } from 'jspdf';
 
+export const SIZE_PRESETS = {
+  phone:  { w: 2532, h: 1170 },
+  tablet: { w: 2732, h: 2048 },
+};
+
 function sanitizeFilename(name) {
   return (name || 'passenger')
     .trim()
@@ -32,9 +37,9 @@ function drawArcs(ctx, width, height, color) {
   ctx.globalAlpha = 1;
 }
 
-function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+function wrapLines(ctx, text, maxWidth) {
   const words = text.split(/\s+/);
-  if (words.length === 0) return;
+  if (words.length === 0) return [''];
 
   const lines = [];
   let currentLine = words[0];
@@ -49,7 +54,11 @@ function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
     }
   }
   lines.push(currentLine);
+  return lines;
+}
 
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+  const lines = wrapLines(ctx, text, maxWidth);
   const totalHeight = lines.length * lineHeight;
   const startY = y - totalHeight / 2 + lineHeight / 2;
 
@@ -60,14 +69,34 @@ function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
   }
 }
 
-async function renderToCanvas(displayEl, nameEl, name, theme) {
+function fitTextOnCanvas(ctx, text, fontFamily, maxWidth, maxHeight) {
+  let lo = 10;
+  let hi = 600;
+
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2);
+    ctx.font = `bold ${mid}px ${fontFamily}`;
+
+    const lines = wrapLines(ctx, text, maxWidth);
+    const lineHeight = mid * 1.15;
+    const totalHeight = lines.length * lineHeight;
+    const widestLine = Math.max(...lines.map((l) => ctx.measureText(l).width));
+
+    if (widestLine > maxWidth || totalHeight > maxHeight) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+
+  return lo;
+}
+
+async function renderToCanvas(name, theme, preset) {
   await document.fonts.ready;
 
-  const rect = displayEl.getBoundingClientRect();
-  const nameRect = nameEl.getBoundingClientRect();
-  const scale = 2;
-  const width = Math.round(rect.width * scale);
-  const height = Math.round(rect.height * scale);
+  const width = preset.w;
+  const height = preset.h;
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -87,12 +116,16 @@ async function renderToCanvas(displayEl, nameEl, name, theme) {
   ctx.textBaseline = 'top';
   ctx.fillText('Hello', width / 2, height * 0.07);
 
-  const computedFontSize = parseFloat(nameEl.style.fontSize) * scale;
-  ctx.font = `bold ${computedFontSize}px 'Caveat', cursive`;
+  const nameMaxW = width * 0.85;
+  const nameTop = height * 0.17;
+  const nameBottom = height * 0.88;
+  const nameMaxH = nameBottom - nameTop;
+  const nameCenterY = nameTop + nameMaxH / 2;
+
+  const nameFontSize = fitTextOnCanvas(ctx, name, "'Caveat', cursive", nameMaxW, nameMaxH);
+  ctx.font = `bold ${nameFontSize}px 'Caveat', cursive`;
   ctx.fillStyle = theme.text;
-  const nameCenterX = ((nameRect.left + nameRect.width / 2) - rect.left) * scale;
-  const nameCenterY = ((nameRect.top + nameRect.height / 2) - rect.top) * scale;
-  drawWrappedText(ctx, name, nameCenterX, nameCenterY, width * 0.9, computedFontSize * 1.15);
+  drawWrappedText(ctx, name, width / 2, nameCenterY, nameMaxW, nameFontSize * 1.15);
 
   const brandSize = height * 0.025;
   const brandY = height - height * 0.05;
@@ -116,8 +149,8 @@ async function renderToCanvas(displayEl, nameEl, name, theme) {
   return canvas;
 }
 
-export async function downloadAsImage(displayEl, nameEl, name, theme) {
-  const canvas = await renderToCanvas(displayEl, nameEl, name, theme);
+export async function downloadAsImage(name, theme, preset) {
+  const canvas = await renderToCanvas(name, theme, preset);
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
@@ -134,8 +167,9 @@ export async function downloadAsImage(displayEl, nameEl, name, theme) {
   });
 }
 
-export async function downloadAsPDF(displayEl, nameEl, name, theme) {
-  const canvas = await renderToCanvas(displayEl, nameEl, name, theme);
+export async function downloadAsPDF(name, theme) {
+  const preset = SIZE_PRESETS.tablet;
+  const canvas = await renderToCanvas(name, theme, preset);
   const imgData = canvas.toDataURL('image/png');
 
   const pxW = canvas.width;

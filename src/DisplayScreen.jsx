@@ -7,7 +7,7 @@ import { THEMES, DEFAULT_THEME } from './themes';
 import { useFitText } from './useFitText';
 import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
-import { downloadAsImage, downloadAsPDF } from './download';
+import { downloadAsImage, downloadAsPDF, SIZE_PRESETS } from './download';
 
 function DecorativeArcs({ color }) {
   const strokeProps = { stroke: color, fill: 'none', strokeWidth: 2.5 };
@@ -122,13 +122,13 @@ export function DisplayScreen({
     clearTimeout(hideTimerRef.current);
   }
 
-  async function handleDownloadImage() {
-    if (!displayRef.current || !elementRef.current || downloading) return;
+  async function handleDownload(preset, label) {
+    if (downloading) return;
     setDownloading(true);
     setDownloadMenuOpen(false);
     try {
-      await downloadAsImage(displayRef.current, elementRef.current, name, t);
-      showToast('Image saved!');
+      await downloadAsImage(name, t, preset);
+      showToast(`${label} image saved!`);
     } catch {
       showToast('Could not save image');
     } finally {
@@ -137,11 +137,11 @@ export function DisplayScreen({
   }
 
   async function handleDownloadPDF() {
-    if (!displayRef.current || !elementRef.current || downloading) return;
+    if (downloading) return;
     setDownloading(true);
     setDownloadMenuOpen(false);
     try {
-      await downloadAsPDF(displayRef.current, elementRef.current, name, t);
+      await downloadAsPDF(name, t);
       showToast('PDF saved!');
     } catch {
       showToast('Could not save PDF');
@@ -217,7 +217,7 @@ export function DisplayScreen({
         >
           <button
             type="button"
-            onClick={handleDownloadImage}
+            onClick={() => handleDownload(SIZE_PRESETS.phone, 'Phone')}
             disabled={downloading}
             className="
               text-white/90 text-sm px-4 py-2.5 rounded-lg
@@ -225,7 +225,19 @@ export function DisplayScreen({
               disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
-            Save as Image
+            Save for Phone
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDownload(SIZE_PRESETS.tablet, 'Tablet')}
+            disabled={downloading}
+            className="
+              text-white/90 text-sm px-4 py-2.5 rounded-lg
+              hover:bg-white/15 transition-colors text-left
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            Save for Tablet
           </button>
           <button
             type="button"
