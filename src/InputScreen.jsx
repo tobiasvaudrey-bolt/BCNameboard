@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { BoltLogo } from './BoltLogo';
-import { ThemePicker } from './ThemePicker';
 import { QRSection } from './QROverlay';
 import { showToast } from './Toast';
 import { buildHash } from './hash';
@@ -10,7 +9,6 @@ export function InputScreen({
   theme,
   active,
   onSubmit,
-  onThemeChange,
 }) {
   const [inputValue, setInputValue] = useState(name || '');
   const inputRef = useRef(null);
@@ -106,8 +104,6 @@ export function InputScreen({
             Display Name
           </button>
         </form>
-
-        <ThemePicker current={theme} onChange={onThemeChange} />
 
         {hasName && (
           <button

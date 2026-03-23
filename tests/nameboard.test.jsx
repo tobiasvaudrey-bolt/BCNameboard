@@ -5,7 +5,6 @@ import { resolve } from 'path';
 import { parseHash, buildHash } from '../src/hash.js';
 import {
   THEMES,
-  THEME_SLUGS,
   DEFAULT_THEME,
   resolveTheme,
   getSavedTheme,
@@ -107,42 +106,26 @@ describe('parseHash / buildHash round-trip', () => {
 // Theme Tests
 // ===========================================================================
 describe('THEMES', () => {
-  it('has exactly 5 themes', () => {
-    expect(Object.keys(THEMES).length).toBe(5);
+  it('has only the bolt-chauffeur theme', () => {
+    expect(Object.keys(THEMES)).toEqual(['bolt-chauffeur']);
   });
 
-  it('THEME_SLUGS matches THEMES keys', () => {
-    expect(THEME_SLUGS).toEqual(Object.keys(THEMES));
-  });
-
-  it('each theme has bg, text, and accent hex colors', () => {
+  it('bolt-chauffeur has bg, text, and accent hex colors', () => {
     const hexPattern = /^#[0-9A-Fa-f]{6}$/;
-    for (const [slug, theme] of Object.entries(THEMES)) {
-      expect(theme.bg, `${slug}.bg`).toMatch(hexPattern);
-      expect(theme.text, `${slug}.text`).toMatch(hexPattern);
-      expect(theme.accent, `${slug}.accent`).toMatch(hexPattern);
-    }
+    const theme = THEMES['bolt-chauffeur'];
+    expect(theme.bg).toMatch(hexPattern);
+    expect(theme.text).toMatch(hexPattern);
+    expect(theme.accent).toMatch(hexPattern);
   });
 
-  it('includes the required themes', () => {
-    const required = ['bolt-chauffeur', 'classic', 'inverted', 'midnight', 'amber'];
-    for (const slug of required) {
-      expect(THEMES).toHaveProperty(slug);
-    }
+  it('bolt-chauffeur passes WCAG AAA contrast (7:1)', () => {
+    const theme = THEMES['bolt-chauffeur'];
+    const ratio = contrastRatio(theme.bg, theme.text);
+    expect(ratio).toBeGreaterThanOrEqual(7);
   });
 
-  it('all themes pass WCAG AAA contrast (7:1)', () => {
-    for (const [slug, theme] of Object.entries(THEMES)) {
-      const ratio = contrastRatio(theme.bg, theme.text);
-      expect(ratio, `${slug} contrast ratio ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(7);
-    }
-  });
-
-  it('each theme has a human-readable name', () => {
-    for (const [slug, theme] of Object.entries(THEMES)) {
-      expect(typeof theme.name, `${slug}.name`).toBe('string');
-      expect(theme.name.length, `${slug}.name length`).toBeGreaterThan(0);
-    }
+  it('bolt-chauffeur has a human-readable name', () => {
+    expect(THEMES['bolt-chauffeur'].name).toBe('Bolt Chauffeur');
   });
 
   it('bolt-chauffeur theme uses branded brown', () => {
@@ -168,8 +151,8 @@ describe('getSavedTheme', () => {
   });
 
   it('returns stored value when set to a valid theme', () => {
-    localStorage.setItem('nameboard-theme', 'amber');
-    expect(getSavedTheme()).toBe('amber');
+    localStorage.setItem('nameboard-theme', 'bolt-chauffeur');
+    expect(getSavedTheme()).toBe('bolt-chauffeur');
   });
 
   it('returns bolt-chauffeur for invalid localStorage value', () => {
@@ -182,8 +165,8 @@ describe('saveTheme', () => {
   beforeEach(() => localStorage.clear());
 
   it('persists theme to localStorage', () => {
-    saveTheme('midnight');
-    expect(localStorage.getItem('nameboard-theme')).toBe('midnight');
+    saveTheme('bolt-chauffeur');
+    expect(localStorage.getItem('nameboard-theme')).toBe('bolt-chauffeur');
   });
 });
 
@@ -191,12 +174,11 @@ describe('resolveTheme', () => {
   beforeEach(() => localStorage.clear());
 
   it('returns the theme if it exists in THEMES', () => {
-    expect(resolveTheme('classic')).toBe('classic');
+    expect(resolveTheme('bolt-chauffeur')).toBe('bolt-chauffeur');
   });
 
-  it('falls back to saved theme for unknown slug', () => {
-    saveTheme('amber');
-    expect(resolveTheme('unknown-theme')).toBe('amber');
+  it('falls back to default for unknown slug', () => {
+    expect(resolveTheme('unknown-theme')).toBe('bolt-chauffeur');
   });
 
   it('falls back to default for null', () => {
@@ -321,10 +303,10 @@ describe('App component', () => {
     expect(input.value).toBe('John Smith');
   });
 
-  it('shows theme picker buttons (5 per screen, 2 screens rendered)', () => {
+  it('does not render any theme picker buttons', () => {
     render(<App />);
-    const themeButtons = screen.getAllByRole('button', { name: /theme/i });
-    expect(themeButtons.length).toBe(10);
+    const themeButtons = screen.queryAllByRole('button', { name: /theme/i });
+    expect(themeButtons.length).toBe(0);
   });
 });
 

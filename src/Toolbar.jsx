@@ -1,4 +1,3 @@
-import { ThemePicker } from './ThemePicker';
 import {
   LinkIcon,
   QRIcon,
@@ -9,8 +8,6 @@ import {
 } from './icons';
 
 export function Toolbar({
-  theme,
-  onThemeChange,
   onCopy,
   onQR,
   onDownload,
@@ -29,8 +26,6 @@ export function Toolbar({
         ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
       `}
     >
-      <ThemePicker current={theme} onChange={onThemeChange} />
-      <div className="w-px h-6 bg-white/20 shrink-0" />
       <ToolbarButton title="Copy link" onClick={onCopy}>
         <LinkIcon />
       </ToolbarButton>

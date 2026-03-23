@@ -6,10 +6,10 @@ import { InputScreen } from './InputScreen';
 import { DisplayScreen } from './DisplayScreen';
 import { Toast } from './Toast';
 
-function getMode(name, orientation, forceDisplay) {
+function getMode(name, forceDisplay, forceInput) {
+  if (forceInput) return 'input';
   if (forceDisplay && name) return 'display';
   if (!name) return 'input';
-  if (orientation === 'portrait') return 'input';
   return 'display';
 }
 
@@ -23,10 +23,11 @@ export default function App() {
       name: name || null,
       theme: resolved,
       forceDisplay: false,
+      forceInput: false,
     };
   });
 
-  const mode = getMode(state.name, orientation, state.forceDisplay);
+  const mode = getMode(state.name, state.forceDisplay, state.forceInput);
 
   const syncHash = useCallback((name, theme) => {
     const expected = buildHash(name, theme);
@@ -56,6 +57,7 @@ export default function App() {
         name: name || null,
         theme: resolved,
         forceDisplay: false,
+        forceInput: false,
       }));
     }
     window.addEventListener('hashchange', onHashChange);
@@ -63,15 +65,11 @@ export default function App() {
   }, []);
 
   function handleSubmit(name) {
-    setAppState({ name, theme: state.theme, forceDisplay: true });
-  }
-
-  function handleThemeChange(theme) {
-    setAppState((s) => ({ ...s, theme }));
+    setAppState({ name, theme: state.theme, forceDisplay: true, forceInput: false });
   }
 
   function handleEdit() {
-    setAppState((s) => ({ ...s, forceDisplay: false }));
+    setAppState((s) => ({ ...s, forceDisplay: false, forceInput: true }));
   }
 
   return (
@@ -81,7 +79,6 @@ export default function App() {
         name={state.name || ''}
         theme={state.theme}
         active={mode === 'display'}
-        onThemeChange={handleThemeChange}
         onEdit={handleEdit}
       />
       <InputScreen
@@ -89,7 +86,6 @@ export default function App() {
         theme={state.theme}
         active={mode === 'input'}
         onSubmit={handleSubmit}
-        onThemeChange={handleThemeChange}
       />
     </>
   );

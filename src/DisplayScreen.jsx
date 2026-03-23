@@ -45,7 +45,6 @@ export function DisplayScreen({
   name,
   theme,
   active,
-  onThemeChange,
   onEdit,
 }) {
   const [toolbarVisible, setToolbarVisible] = useState(true);
@@ -245,8 +244,6 @@ export function DisplayScreen({
 
       <div data-toolbar data-no-capture>
         <Toolbar
-          theme={theme}
-          onThemeChange={onThemeChange}
           onCopy={handleCopy}
           onQR={() => setQrVisible(true)}
           onDownload={handleDownloadToggle}
