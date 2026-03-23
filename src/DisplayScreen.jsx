@@ -124,11 +124,11 @@ export function DisplayScreen({
   }
 
   async function handleDownloadImage() {
-    if (!displayRef.current || downloading) return;
+    if (!displayRef.current || !elementRef.current || downloading) return;
     setDownloading(true);
     setDownloadMenuOpen(false);
     try {
-      await downloadAsImage(displayRef.current, name);
+      await downloadAsImage(displayRef.current, elementRef.current, name, t);
       showToast('Image saved!');
     } catch {
       showToast('Could not save image');
@@ -138,11 +138,11 @@ export function DisplayScreen({
   }
 
   async function handleDownloadPDF() {
-    if (!displayRef.current || downloading) return;
+    if (!displayRef.current || !elementRef.current || downloading) return;
     setDownloading(true);
     setDownloadMenuOpen(false);
     try {
-      await downloadAsPDF(displayRef.current, name);
+      await downloadAsPDF(displayRef.current, elementRef.current, name, t);
       showToast('PDF saved!');
     } catch {
       showToast('Could not save PDF');

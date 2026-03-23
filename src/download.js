@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 function sanitizeFilename(name) {
@@ -9,17 +8,116 @@ function sanitizeFilename(name) {
     .toLowerCase();
 }
 
-async function capture(element) {
-  return html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    ignoreElements: (el) => el.hasAttribute?.('data-no-capture'),
-  });
+function drawArcs(ctx, width, height, color) {
+  const scaleX = (width * 0.4) / 200;
+  const scaleY = (height * 0.4) / 200;
+  const radii = [50, 80, 110, 140];
+  const opacities = [0.6, 0.5, 0.45, 0.35];
+
+  ctx.lineWidth = 2.5 * Math.max(scaleX, scaleY);
+  ctx.strokeStyle = color;
+
+  for (let i = 0; i < radii.length; i++) {
+    ctx.globalAlpha = opacities[i];
+
+    ctx.beginPath();
+    ctx.ellipse(width, 0, radii[i] * scaleX, radii[i] * scaleY, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.ellipse(0, height, radii[i] * scaleX, radii[i] * scaleY, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
 }
 
-export async function downloadAsImage(element, name) {
-  const canvas = await capture(element);
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(/\s+/);
+  if (words.length === 0) return;
+
+  const lines = [];
+  let currentLine = words[0];
+
+  for (let i = 1; i < words.length; i++) {
+    const testLine = currentLine + ' ' + words[i];
+    if (ctx.measureText(testLine).width <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      lines.push(currentLine);
+      currentLine = words[i];
+    }
+  }
+  lines.push(currentLine);
+
+  const totalHeight = lines.length * lineHeight;
+  const startY = y - totalHeight / 2 + lineHeight / 2;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], x, startY + i * lineHeight);
+  }
+}
+
+async function renderToCanvas(displayEl, nameEl, name, theme) {
+  await document.fonts.ready;
+
+  const rect = displayEl.getBoundingClientRect();
+  const nameRect = nameEl.getBoundingClientRect();
+  const scale = 2;
+  const width = Math.round(rect.width * scale);
+  const height = Math.round(rect.height * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, width, height);
+
+  drawArcs(ctx, width, height, theme.accent);
+
+  ctx.fillStyle = theme.text;
+
+  const helloSize = height * 0.055;
+  ctx.font = `bold ${helloSize}px 'Inter', sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Hello', width / 2, height * 0.07);
+
+  const computedFontSize = parseFloat(nameEl.style.fontSize) * scale;
+  ctx.font = `bold ${computedFontSize}px 'Caveat', cursive`;
+  ctx.fillStyle = theme.text;
+  const nameCenterX = ((nameRect.left + nameRect.width / 2) - rect.left) * scale;
+  const nameCenterY = ((nameRect.top + nameRect.height / 2) - rect.top) * scale;
+  drawWrappedText(ctx, name, nameCenterX, nameCenterY, width * 0.9, computedFontSize * 1.15);
+
+  const brandSize = height * 0.025;
+  const brandY = height - height * 0.05;
+  ctx.fillStyle = theme.text;
+  ctx.textBaseline = 'bottom';
+
+  ctx.font = `bold ${brandSize}px 'Inter', sans-serif`;
+  const boltText = 'Bolt ';
+  const boltWidth = ctx.measureText(boltText).width;
+  ctx.font = `500 ${brandSize}px 'Inter', sans-serif`;
+  const chauffeurText = 'Chauffeur';
+  const chauffeurWidth = ctx.measureText(chauffeurText).width;
+  const brandStartX = (width - boltWidth - chauffeurWidth) / 2;
+
+  ctx.textAlign = 'left';
+  ctx.font = `bold ${brandSize}px 'Inter', sans-serif`;
+  ctx.fillText(boltText, brandStartX, brandY);
+  ctx.font = `500 ${brandSize}px 'Inter', sans-serif`;
+  ctx.fillText(chauffeurText, brandStartX + boltWidth, brandY);
+
+  return canvas;
+}
+
+export async function downloadAsImage(displayEl, nameEl, name, theme) {
+  const canvas = await renderToCanvas(displayEl, nameEl, name, theme);
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
@@ -36,8 +134,8 @@ export async function downloadAsImage(element, name) {
   });
 }
 
-export async function downloadAsPDF(element, name) {
-  const canvas = await capture(element);
+export async function downloadAsPDF(displayEl, nameEl, name, theme) {
+  const canvas = await renderToCanvas(displayEl, nameEl, name, theme);
   const imgData = canvas.toDataURL('image/png');
 
   const pxW = canvas.width;
