@@ -1,11 +1,11 @@
 export const DEFAULT_THEME = 'bolt-chauffeur';
 
 export const THEMES = {
-  'bolt-chauffeur': { name: 'Bolt Chauffeur', bg: '#34BB78', text: '#000000' },
-  classic:          { name: 'Classic',        bg: '#000000', text: '#FFFFFF' },
-  inverted:         { name: 'Inverted',       bg: '#FFFFFF', text: '#222222' },
-  midnight:         { name: 'Midnight',       bg: '#1A1A2E', text: '#E0E0FF' },
-  amber:            { name: 'Amber',          bg: '#2D1B00', text: '#FFB800' },
+  'bolt-chauffeur': { name: 'Bolt Chauffeur', bg: '#C4976B', text: '#000000', accent: '#E8D5B8' },
+  classic:          { name: 'Classic',        bg: '#000000', text: '#FFFFFF', accent: '#333333' },
+  inverted:         { name: 'Inverted',       bg: '#FFFFFF', text: '#222222', accent: '#E0E0E0' },
+  midnight:         { name: 'Midnight',       bg: '#1A1A2E', text: '#E0E0FF', accent: '#2A2A4E' },
+  amber:            { name: 'Amber',          bg: '#2D1B00', text: '#FFB800', accent: '#4A3000' },
 };
 
 export const THEME_SLUGS = Object.keys(THEMES);

@@ -2,6 +2,7 @@ import { ThemePicker } from './ThemePicker';
 import {
   LinkIcon,
   QRIcon,
+  DownloadIcon,
   FullscreenIcon,
   ExitFullscreenIcon,
   EditIcon,
@@ -12,6 +13,7 @@ export function Toolbar({
   onThemeChange,
   onCopy,
   onQR,
+  onDownload,
   onFullscreen,
   onEdit,
   isFullscreen,
@@ -34,6 +36,9 @@ export function Toolbar({
       </ToolbarButton>
       <ToolbarButton title="QR code" onClick={onQR}>
         <QRIcon />
+      </ToolbarButton>
+      <ToolbarButton title="Download" onClick={onDownload}>
+        <DownloadIcon />
       </ToolbarButton>
       <ToolbarButton title="Toggle fullscreen" onClick={onFullscreen}>
         {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}

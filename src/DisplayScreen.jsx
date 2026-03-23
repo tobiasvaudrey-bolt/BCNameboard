@@ -7,6 +7,39 @@ import { THEMES, DEFAULT_THEME } from './themes';
 import { useFitText } from './useFitText';
 import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
+import { downloadAsImage, downloadAsPDF } from './download';
+
+function DecorativeArcs({ color }) {
+  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 2.5 };
+
+  return (
+    <>
+      <svg
+        className="absolute top-0 right-0 pointer-events-none"
+        style={{ width: '40%', height: '40%' }}
+        viewBox="0 0 200 200"
+        preserveAspectRatio="none"
+      >
+        <circle cx="200" cy="0" r="50" {...strokeProps} opacity="0.6" />
+        <circle cx="200" cy="0" r="80" {...strokeProps} opacity="0.5" />
+        <circle cx="200" cy="0" r="110" {...strokeProps} opacity="0.45" />
+        <circle cx="200" cy="0" r="140" {...strokeProps} opacity="0.35" />
+      </svg>
+
+      <svg
+        className="absolute bottom-0 left-0 pointer-events-none"
+        style={{ width: '40%', height: '40%' }}
+        viewBox="0 0 200 200"
+        preserveAspectRatio="none"
+      >
+        <circle cx="0" cy="200" r="50" {...strokeProps} opacity="0.6" />
+        <circle cx="0" cy="200" r="80" {...strokeProps} opacity="0.5" />
+        <circle cx="0" cy="200" r="110" {...strokeProps} opacity="0.45" />
+        <circle cx="0" cy="200" r="140" {...strokeProps} opacity="0.35" />
+      </svg>
+    </>
+  );
+}
 
 export function DisplayScreen({
   name,
@@ -17,7 +50,10 @@ export function DisplayScreen({
 }) {
   const [toolbarVisible, setToolbarVisible] = useState(true);
   const [qrVisible, setQrVisible] = useState(false);
+  const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const hideTimerRef = useRef(null);
+  const displayRef = useRef(null);
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const { elementRef, containerRef, refit } = useFitText(name, [active, isFullscreen]);
   const t = THEMES[theme] || THEMES[DEFAULT_THEME];
@@ -32,6 +68,10 @@ export function DisplayScreen({
     return () => clearTimeout(hideTimerRef.current);
   }, [active, refit]);
 
+  useEffect(() => {
+    if (!toolbarVisible) setDownloadMenuOpen(false);
+  }, [toolbarVisible]);
+
   function showToolbar() {
     setToolbarVisible(true);
     clearTimeout(hideTimerRef.current);
@@ -40,7 +80,12 @@ export function DisplayScreen({
 
   function toggleToolbar(e) {
     if (e.target.closest('[data-toolbar]')) return;
+    if (e.target.closest('[data-download-menu]')) return;
     if (qrVisible) return;
+    if (downloadMenuOpen) {
+      setDownloadMenuOpen(false);
+      return;
+    }
     if (toolbarVisible) {
       setToolbarVisible(false);
       clearTimeout(hideTimerRef.current);
@@ -73,41 +118,138 @@ export function DisplayScreen({
     onEdit();
   }
 
+  function handleDownloadToggle() {
+    setDownloadMenuOpen((v) => !v);
+    clearTimeout(hideTimerRef.current);
+  }
+
+  async function handleDownloadImage() {
+    if (!displayRef.current || downloading) return;
+    setDownloading(true);
+    setDownloadMenuOpen(false);
+    try {
+      await downloadAsImage(displayRef.current, name);
+      showToast('Image saved!');
+    } catch {
+      showToast('Could not save image');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  async function handleDownloadPDF() {
+    if (!displayRef.current || downloading) return;
+    setDownloading(true);
+    setDownloadMenuOpen(false);
+    try {
+      await downloadAsPDF(displayRef.current, name);
+      showToast('PDF saved!');
+    } catch {
+      showToast('Could not save PDF');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   const shareUrl = name
     ? window.location.origin + window.location.pathname + buildHash(name, theme)
     : '';
 
   return (
     <div
-      ref={containerRef}
+      ref={displayRef}
       className={`
         absolute inset-0 w-full h-dvh
-        flex flex-col items-center justify-center
         select-none cursor-default
         transition-all duration-300 ease-out z-10
+        overflow-hidden
         ${active ? 'opacity-100 visible' : 'opacity-0 invisible'}
       `}
       style={{ backgroundColor: t.bg, color: t.text }}
       onClick={toggleToolbar}
       onMouseMove={handleMouseMove}
     >
-      <div
-        ref={elementRef}
-        role="heading"
-        aria-level="1"
-        tabIndex={-1}
-        className="font-bold text-center break-words p-[5vw] max-w-full max-h-full outline-none landscape:p-[3vh_5vw]"
-        style={{ textShadow: `0 0 30px ${t.text}20` }}
-      >
-        {name}
+      <DecorativeArcs color={t.accent} />
+
+      <div className="relative flex flex-col items-center h-full w-full z-[1]">
+        <div
+          className="pt-[7vh] text-[clamp(1.25rem,5.5vh,4rem)] font-bold tracking-tight"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          Hello
+        </div>
+
+        <div
+          ref={containerRef}
+          className="flex-1 flex items-center justify-center w-full min-h-0"
+        >
+          <div
+            ref={elementRef}
+            role="heading"
+            aria-level="1"
+            tabIndex={-1}
+            className="text-center break-words px-[5vw] max-w-full max-h-full outline-none font-script"
+            style={{ fontWeight: 700 }}
+          >
+            {name}
+          </div>
+        </div>
+
+        <div
+          className="pb-[5vh] text-[clamp(0.75rem,2.5vh,1.5rem)] tracking-wide"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          <span className="font-bold">Bolt</span>
+          {' '}
+          <span className="font-medium">Chauffeur</span>
+        </div>
       </div>
 
-      <div data-toolbar>
+      {downloadMenuOpen && (
+        <div
+          data-download-menu
+          data-no-capture
+          className="
+            absolute bottom-[72px] left-1/2 -translate-x-1/2 z-20
+            bg-black/70 backdrop-blur-md rounded-xl
+            p-1.5 flex flex-col gap-0.5 min-w-[180px]
+            shadow-lg border border-white/10
+          "
+        >
+          <button
+            type="button"
+            onClick={handleDownloadImage}
+            disabled={downloading}
+            className="
+              text-white/90 text-sm px-4 py-2.5 rounded-lg
+              hover:bg-white/15 transition-colors text-left
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            Save as Image
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="
+              text-white/90 text-sm px-4 py-2.5 rounded-lg
+              hover:bg-white/15 transition-colors text-left
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            Save as PDF
+          </button>
+        </div>
+      )}
+
+      <div data-toolbar data-no-capture>
         <Toolbar
           theme={theme}
           onThemeChange={onThemeChange}
           onCopy={handleCopy}
           onQR={() => setQrVisible(true)}
+          onDownload={handleDownloadToggle}
           onFullscreen={toggleFullscreen}
           onEdit={handleEdit}
           isFullscreen={isFullscreen}
@@ -115,11 +257,13 @@ export function DisplayScreen({
         />
       </div>
 
-      <QROverlay
-        url={shareUrl}
-        visible={qrVisible}
-        onClose={() => setQrVisible(false)}
-      />
+      <div data-no-capture>
+        <QROverlay
+          url={shareUrl}
+          visible={qrVisible}
+          onClose={() => setQrVisible(false)}
+        />
+      </div>
     </div>
   );
 }

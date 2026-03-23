@@ -115,11 +115,12 @@ describe('THEMES', () => {
     expect(THEME_SLUGS).toEqual(Object.keys(THEMES));
   });
 
-  it('each theme has bg and text hex colors', () => {
+  it('each theme has bg, text, and accent hex colors', () => {
     const hexPattern = /^#[0-9A-Fa-f]{6}$/;
     for (const [slug, theme] of Object.entries(THEMES)) {
       expect(theme.bg, `${slug}.bg`).toMatch(hexPattern);
       expect(theme.text, `${slug}.text`).toMatch(hexPattern);
+      expect(theme.accent, `${slug}.accent`).toMatch(hexPattern);
     }
   });
 
@@ -142,6 +143,10 @@ describe('THEMES', () => {
       expect(typeof theme.name, `${slug}.name`).toBe('string');
       expect(theme.name.length, `${slug}.name length`).toBeGreaterThan(0);
     }
+  });
+
+  it('bolt-chauffeur theme uses branded brown', () => {
+    expect(THEMES['bolt-chauffeur'].bg).toBe('#C4976B');
   });
 });
 
