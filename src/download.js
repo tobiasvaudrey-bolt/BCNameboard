@@ -1,8 +1,19 @@
 import { jsPDF } from 'jspdf';
 
 export const SIZE_PRESETS = {
-  phone:  { w: 2532, h: 1170 },
-  tablet: { w: 2732, h: 2048 },
+  phone: {
+    w: 2532, h: 1170,
+    helloScale: 0.075,
+    helloY: 0.05,
+    nameTop: 0.14,
+    nameBottom: 0.90,
+    nameMaxW: 0.92,
+    brandScale: 0.045,
+    brandY: 0.04,
+  },
+  tablet: {
+    w: 2732, h: 2048,
+  },
 };
 
 function sanitizeFilename(name) {
@@ -110,15 +121,15 @@ async function renderToCanvas(name, theme, preset) {
 
   ctx.fillStyle = theme.text;
 
-  const helloSize = height * 0.055;
+  const helloSize = height * (preset.helloScale || 0.055);
   ctx.font = `bold ${helloSize}px 'Inter', sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.fillText('Hello', width / 2, height * 0.07);
+  ctx.fillText('Hello', width / 2, height * (preset.helloY || 0.07));
 
-  const nameMaxW = width * 0.85;
-  const nameTop = height * 0.17;
-  const nameBottom = height * 0.88;
+  const nameMaxW = width * (preset.nameMaxW || 0.85);
+  const nameTop = height * (preset.nameTop || 0.17);
+  const nameBottom = height * (preset.nameBottom || 0.88);
   const nameMaxH = nameBottom - nameTop;
   const nameCenterY = nameTop + nameMaxH / 2;
 
@@ -127,8 +138,8 @@ async function renderToCanvas(name, theme, preset) {
   ctx.fillStyle = theme.text;
   drawWrappedText(ctx, name, width / 2, nameCenterY, nameMaxW, nameFontSize * 1.15);
 
-  const brandSize = height * 0.025;
-  const brandY = height - height * 0.05;
+  const brandSize = height * (preset.brandScale || 0.025);
+  const brandY = height - height * (preset.brandY || 0.05);
   ctx.fillStyle = theme.text;
   ctx.textBaseline = 'bottom';
 
