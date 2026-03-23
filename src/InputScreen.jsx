@@ -117,10 +117,7 @@ export function InputScreen({
       `}
     >
       <div className="w-full max-w-md flex flex-col gap-5 items-center">
-        <BoltLogo className="h-8 w-auto" />
-        <p className="text-[0.7rem] uppercase tracking-[0.15em] text-white/50 font-semibold">
-          Chauffeur Nameboard
-        </p>
+        <BoltLogo className="text-2xl" />
         <p className="text-sm text-white/50 text-center leading-relaxed">
           Enter a passenger name to display, or share a link to load one
         </p>

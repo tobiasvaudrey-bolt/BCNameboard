@@ -281,7 +281,7 @@ describe('App component', () => {
 
   it('renders the input screen by default', () => {
     render(<App />);
-    expect(screen.getByText('Chauffeur Nameboard')).toBeInTheDocument();
+    expect(screen.getByLabelText('Bolt Chauffeur logo')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('e.g. John Smith')).toBeInTheDocument();
   });
 
