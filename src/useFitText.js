@@ -31,12 +31,20 @@ export function useFitText(text, deps = []) {
   }, [text, fit, ...deps]);
 
   useEffect(() => {
-    const onResize = () => fit();
+    let rafId;
+    const onResize = () => {
+      fit();
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(fit);
+    };
     window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
     document.addEventListener('fullscreenchange', onResize);
     document.addEventListener('webkitfullscreenchange', onResize);
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
       document.removeEventListener('fullscreenchange', onResize);
       document.removeEventListener('webkitfullscreenchange', onResize);
     };

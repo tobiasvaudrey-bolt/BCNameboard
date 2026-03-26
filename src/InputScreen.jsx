@@ -109,14 +109,14 @@ export function InputScreen({
     <div
       className={`
         absolute inset-0 w-full h-dvh
-        flex flex-col items-center justify-center
+        flex flex-col items-center
         bg-[#111] text-white
-        gap-6 p-6 overflow-y-auto
+        p-6 overflow-y-auto overscroll-contain
         transition-all duration-300 ease-out
         ${active ? 'opacity-100 visible' : 'opacity-0 invisible'}
       `}
     >
-      <div className="w-full max-w-md flex flex-col gap-5 items-center">
+      <div className="w-full max-w-md flex flex-col gap-5 items-center my-auto">
         <BoltLogo className="text-2xl" />
         <p className="text-sm text-white/50 text-center leading-relaxed">
           Enter a passenger name to display, or share a link to load one
