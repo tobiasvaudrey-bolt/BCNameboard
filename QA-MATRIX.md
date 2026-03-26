@@ -108,7 +108,7 @@ Test on **at least one device from each row**:
 | 7.1 | Background color | Nameboard background is warm brown (#C4976B) |
 | 7.2 | Decorative arcs | Cream/beige curved lines visible in top-right and bottom-left corners |
 | 7.3 | "Hello" text | Black, bold, Inter font, centered at top |
-| 7.4 | Name text | Black, bold, Caveat (script) font, auto-sized to fill space |
+| 7.4 | Name text | Black, bold, Dancing Script font, auto-sized to fill space |
 | 7.5 | "Bolt Chauffeur" | Black text at bottom: "Bolt" bold, "Chauffeur" medium weight |
 | 7.6 | Input screen theme | Dark background (#111), white text |
 | 7.7 | Logo on input | "Bolt Chauffeur" in white text (not old green C logo) |
