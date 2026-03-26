@@ -156,10 +156,10 @@ describe('index.html – PWA meta tags', () => {
     expect(html).toMatch(/<link\s[^>]*rel=["']manifest["']/);
   });
 
-  it('loads Google Fonts (Inter and Dancing Script)', () => {
+  it('loads Google Fonts (Inter and Caveat)', () => {
     expect(html).toContain('fonts.googleapis.com');
     expect(html).toContain('Inter');
-    expect(html).toContain('Dancing+Script');
+    expect(html).toContain('Caveat');
   });
 
   it('loads the app entry point', () => {

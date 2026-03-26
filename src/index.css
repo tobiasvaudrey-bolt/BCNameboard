@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-script: 'Dancing Script', cursive;
+  --font-script: 'Caveat', cursive;
   --color-bolt: #34BB78;
   --color-bolt-dark: #2DA96B;
   --color-theme-bg: var(--theme-bg, #C4976B);

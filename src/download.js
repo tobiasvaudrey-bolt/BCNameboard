@@ -179,8 +179,8 @@ async function renderToCanvas(name, theme, preset) {
   const nameMaxH = nameBottom - nameTop;
   const nameCenterY = nameTop + nameMaxH / 2;
 
-  const nameFontSize = fitTextOnCanvas(ctx, name, "'Dancing Script', cursive", nameMaxW, nameMaxH);
-  ctx.font = `bold ${nameFontSize}px 'Dancing Script', cursive`;
+  const nameFontSize = fitTextOnCanvas(ctx, name, "'Caveat', cursive", nameMaxW, nameMaxH);
+  ctx.font = `bold ${nameFontSize}px 'Caveat', cursive`;
   ctx.fillStyle = theme.text;
   drawWrappedText(ctx, name, width / 2, nameCenterY, nameMaxW, nameFontSize * 1.15);
 
