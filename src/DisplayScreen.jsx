@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Toolbar } from './Toolbar';
 import { QROverlay } from './QROverlay';
+import { BoltLogo } from './BoltLogo';
 import { showToast } from './Toast';
 import { buildHash } from './hash';
 import { THEMES, DEFAULT_THEME } from './themes';
@@ -9,33 +10,47 @@ import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
 import { downloadAsImage, downloadAsPDF, SIZE_PRESETS } from './download';
 
+const ARC_RADII = [60, 68, 76, 84, 92];
+const ARC_SWEEP = 270;
+
+function arcPath(cx, cy, r, startAngle) {
+  const start = (startAngle * Math.PI) / 180;
+  const end = ((startAngle + ARC_SWEEP) * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(start);
+  const y1 = cy + r * Math.sin(start);
+  const x2 = cx + r * Math.cos(end);
+  const y2 = cy + r * Math.sin(end);
+  const largeArc = ARC_SWEEP > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+}
+
 function DecorativeArcs({ color }) {
-  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 2.5 };
+  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 2.5, opacity: 0.5 };
 
   return (
     <>
+      {/* Top-right: C opens toward bottom-left (start at 180°) */}
       <svg
         className="absolute top-0 right-0 pointer-events-none"
         style={{ width: '40%', height: '40%' }}
         viewBox="0 0 200 200"
         preserveAspectRatio="none"
       >
-        <circle cx="200" cy="0" r="50" {...strokeProps} opacity="0.6" />
-        <circle cx="200" cy="0" r="80" {...strokeProps} opacity="0.5" />
-        <circle cx="200" cy="0" r="110" {...strokeProps} opacity="0.45" />
-        <circle cx="200" cy="0" r="140" {...strokeProps} opacity="0.35" />
+        {ARC_RADII.map((r) => (
+          <path key={`tr-${r}`} d={arcPath(200, 0, r, 90)} {...strokeProps} />
+        ))}
       </svg>
 
+      {/* Bottom-left: C opens toward top-right (start at 0°) */}
       <svg
         className="absolute bottom-0 left-0 pointer-events-none"
         style={{ width: '40%', height: '40%' }}
         viewBox="0 0 200 200"
         preserveAspectRatio="none"
       >
-        <circle cx="0" cy="200" r="50" {...strokeProps} opacity="0.6" />
-        <circle cx="0" cy="200" r="80" {...strokeProps} opacity="0.5" />
-        <circle cx="0" cy="200" r="110" {...strokeProps} opacity="0.45" />
-        <circle cx="0" cy="200" r="140" {...strokeProps} opacity="0.35" />
+        {ARC_RADII.map((r) => (
+          <path key={`bl-${r}`} d={arcPath(0, 200, r, -90)} {...strokeProps} />
+        ))}
       </svg>
     </>
   );
@@ -194,13 +209,8 @@ export function DisplayScreen({
           </div>
         </div>
 
-        <div
-          className="pb-[5vh] text-[clamp(0.75rem,2.5vh,1.5rem)] tracking-wide"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          <span className="font-bold">Bolt</span>
-          {' '}
-          <span className="font-medium">Chauffeur</span>
+        <div className="pb-[5vh] flex items-center justify-center">
+          <BoltLogo className="h-[clamp(1rem,3vh,2rem)] w-auto" fill={t.text} />
         </div>
       </div>
 

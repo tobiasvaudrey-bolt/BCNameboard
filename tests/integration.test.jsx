@@ -110,13 +110,11 @@ describe('Display screen content', () => {
     expect(screen.getByText('Hello')).toBeInTheDocument();
   });
 
-  it('shows "Bolt" and "Chauffeur" branding on display', () => {
+  it('shows Bolt Chauffeur branding on display', () => {
     window.location.hash = '#name=Ana&theme=bolt-chauffeur';
     render(<App />);
-    const boltElements = screen.getAllByText('Bolt');
-    const chauffeurElements = screen.getAllByText('Chauffeur');
-    expect(boltElements.length).toBeGreaterThanOrEqual(1);
-    expect(chauffeurElements.length).toBeGreaterThanOrEqual(1);
+    const logos = screen.getAllByLabelText('Bolt Chauffeur logo');
+    expect(logos.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders all toolbar buttons', () => {
@@ -149,7 +147,8 @@ describe('Input screen content', () => {
 
   it('has Bolt Chauffeur logo', () => {
     render(<App />);
-    expect(screen.getByLabelText('Bolt Chauffeur logo')).toBeInTheDocument();
+    const logos = screen.getAllByLabelText('Bolt Chauffeur logo');
+    expect(logos.length).toBeGreaterThanOrEqual(1);
   });
 
   it('has a labeled text input', () => {

@@ -61,7 +61,8 @@ describe('Input screen accessibility', () => {
 
   it('logo has an accessible label', () => {
     render(<App />);
-    expect(screen.getByLabelText('Bolt Chauffeur logo')).toBeInTheDocument();
+    const logos = screen.getAllByLabelText('Bolt Chauffeur logo');
+    expect(logos.length).toBeGreaterThanOrEqual(1);
   });
 
   it('form input has an associated label', () => {
