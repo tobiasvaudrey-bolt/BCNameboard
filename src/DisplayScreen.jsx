@@ -180,7 +180,7 @@ export function DisplayScreen({
 
         <div
           ref={containerRef}
-          className="flex-1 flex items-center justify-center w-full min-h-0"
+          className="flex-1 flex items-center justify-center w-full min-h-0 overflow-hidden"
         >
           <div
             ref={elementRef}
