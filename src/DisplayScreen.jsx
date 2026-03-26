@@ -10,46 +10,30 @@ import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
 import { downloadAsImage, downloadAsPDF, SIZE_PRESETS } from './download';
 
-const ARC_RADII = [60, 68, 76, 84, 92];
-const ARC_SWEEP = 270;
-
-function arcPath(cx, cy, r, startAngle) {
-  const start = (startAngle * Math.PI) / 180;
-  const end = ((startAngle + ARC_SWEEP) * Math.PI) / 180;
-  const x1 = cx + r * Math.cos(start);
-  const y1 = cy + r * Math.sin(start);
-  const x2 = cx + r * Math.cos(end);
-  const y2 = cy + r * Math.sin(end);
-  const largeArc = ARC_SWEEP > 180 ? 1 : 0;
-  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
-}
+const ARC_RADII = [62, 76, 90, 104];
 
 function DecorativeArcs({ color }) {
-  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 2.5, opacity: 0.5 };
+  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 7, opacity: 0.65 };
 
   return (
     <>
-      {/* Top-right: C opens toward bottom-left (start at 180°) */}
       <svg
-        className="absolute top-0 right-0 pointer-events-none"
-        style={{ width: '40%', height: '40%' }}
-        viewBox="0 0 200 200"
-        preserveAspectRatio="none"
+        className="absolute pointer-events-none"
+        style={{ width: '80vh', height: '80vh', top: '-40vh', right: '-40vh' }}
+        viewBox="-100 -100 200 200"
       >
         {ARC_RADII.map((r) => (
-          <path key={`tr-${r}`} d={arcPath(200, 0, r, 90)} {...strokeProps} />
+          <circle key={`tr-${r}`} cx="0" cy="0" r={r} {...strokeProps} />
         ))}
       </svg>
 
-      {/* Bottom-left: C opens toward top-right (start at 0°) */}
       <svg
-        className="absolute bottom-0 left-0 pointer-events-none"
-        style={{ width: '40%', height: '40%' }}
-        viewBox="0 0 200 200"
-        preserveAspectRatio="none"
+        className="absolute pointer-events-none"
+        style={{ width: '80vh', height: '80vh', bottom: '-40vh', left: '-40vh' }}
+        viewBox="-100 -100 200 200"
       >
         {ARC_RADII.map((r) => (
-          <path key={`bl-${r}`} d={arcPath(0, 200, r, -90)} {...strokeProps} />
+          <circle key={`bl-${r}`} cx="0" cy="0" r={r} {...strokeProps} />
         ))}
       </svg>
     </>
@@ -187,7 +171,7 @@ export function DisplayScreen({
 
       <div className="relative flex flex-col items-center h-full w-full z-[1]">
         <div
-          className="pt-[7vh] text-[clamp(1.25rem,5.5vh,4rem)] font-bold tracking-tight"
+          className="pt-[4vh] text-[clamp(1.5rem,8vh,6rem)] font-bold tracking-tight"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
           Hello
@@ -209,8 +193,8 @@ export function DisplayScreen({
           </div>
         </div>
 
-        <div className="pb-[5vh] flex items-center justify-center">
-          <BoltLogo className="h-[clamp(1rem,3vh,2rem)] w-auto" fill={t.text} />
+        <div className="pb-[3vh] flex items-center justify-center">
+          <BoltLogo className="h-[clamp(1.5rem,5vh,4rem)] w-auto" fill={t.text} />
         </div>
       </div>
 

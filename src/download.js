@@ -63,30 +63,22 @@ export function sanitizeFilename(name) {
   return cleaned || 'passenger';
 }
 
-const CANVAS_ARC_RADII = [60, 68, 76, 84, 92];
-const CANVAS_ARC_SWEEP = (270 * Math.PI) / 180;
+const CANVAS_ARC_FRACTIONS = [0.31, 0.38, 0.45, 0.52];
 
 function drawArcs(ctx, width, height, color) {
-  const scaleX = (width * 0.4) / 200;
-  const scaleY = (height * 0.4) / 200;
-  const scale = Math.max(scaleX, scaleY);
-
-  ctx.lineWidth = 2.5 * scale;
   ctx.strokeStyle = color;
-  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = Math.max(3, height * 0.014);
+  ctx.globalAlpha = 0.65;
 
-  for (const r of CANVAS_ARC_RADII) {
-    const rx = r * scaleX;
-    const ry = r * scaleY;
+  for (const frac of CANVAS_ARC_FRACTIONS) {
+    const radius = height * frac;
 
-    // Top-right corner: C opens toward bottom-left (start at 90°, sweep 270°)
     ctx.beginPath();
-    ctx.ellipse(width, 0, rx, ry, 0, Math.PI / 2, Math.PI / 2 + CANVAS_ARC_SWEEP);
+    ctx.arc(width, 0, radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Bottom-left corner: C opens toward top-right (start at -90°, sweep 270°)
     ctx.beginPath();
-    ctx.ellipse(0, height, rx, ry, 0, -Math.PI / 2, -Math.PI / 2 + CANVAS_ARC_SWEEP);
+    ctx.arc(0, height, radius, 0, Math.PI * 2);
     ctx.stroke();
   }
 
