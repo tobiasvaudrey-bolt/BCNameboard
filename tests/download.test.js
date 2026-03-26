@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SIZE_PRESETS } from '../src/download.js';
+import { SIZE_PRESETS, sanitizeFilename } from '../src/download.js';
 
 // ===========================================================================
 // SIZE_PRESETS structure validation
@@ -84,9 +84,84 @@ describe('SIZE_PRESETS', () => {
 });
 
 // ===========================================================================
-// sanitizeFilename (tested indirectly via module internals pattern)
+// sanitizeFilename
 // ===========================================================================
-describe('Filename safety', () => {
+describe('sanitizeFilename', () => {
+  it('lowercases and hyphenates Latin names', () => {
+    expect(sanitizeFilename('John Smith')).toBe('john-smith');
+  });
+
+  it('preserves Chinese characters', () => {
+    expect(sanitizeFilename('张伟')).toBe('张伟');
+  });
+
+  it('preserves Arabic characters and hyphenates spaces', () => {
+    expect(sanitizeFilename('محمد بن سلمان')).toBe('محمد-بن-سلمان');
+  });
+
+  it('preserves Japanese characters', () => {
+    expect(sanitizeFilename('田中太郎')).toBe('田中太郎');
+  });
+
+  it('preserves Korean characters', () => {
+    expect(sanitizeFilename('김민수')).toBe('김민수');
+  });
+
+  it('preserves Cyrillic characters', () => {
+    expect(sanitizeFilename('Борис Петров')).toBe('борис-петров');
+  });
+
+  it('preserves accented Latin characters', () => {
+    expect(sanitizeFilename('José García')).toBe('josé-garcía');
+  });
+
+  it('preserves Hindi characters', () => {
+    expect(sanitizeFilename('राजेश कुमार')).toBe('राजेश-कुमार');
+  });
+
+  it('strips filesystem-unsafe characters', () => {
+    expect(sanitizeFilename('file/name:test')).toBe('filenametest');
+    expect(sanitizeFilename('a*b?c"d')).toBe('abcd');
+    expect(sanitizeFilename('a<b>c|d')).toBe('abcd');
+    expect(sanitizeFilename('a\\b')).toBe('ab');
+  });
+
+  it('collapses multiple spaces to a single hyphen', () => {
+    expect(sanitizeFilename('John    Smith')).toBe('john-smith');
+  });
+
+  it('trims leading/trailing whitespace', () => {
+    expect(sanitizeFilename('  Ana  ')).toBe('ana');
+  });
+
+  it('falls back to "passenger" for null/undefined/empty', () => {
+    expect(sanitizeFilename(null)).toBe('passenger');
+    expect(sanitizeFilename(undefined)).toBe('passenger');
+    expect(sanitizeFilename('')).toBe('passenger');
+  });
+
+  it('falls back to "passenger" when all chars are stripped', () => {
+    expect(sanitizeFilename('***')).toBe('passenger');
+    expect(sanitizeFilename(':/?\\')).toBe('passenger');
+  });
+
+  it('handles mixed Latin and non-Latin', () => {
+    expect(sanitizeFilename('Dr. 张伟')).toBe('dr.-张伟');
+  });
+
+  it('preserves hyphens in names', () => {
+    expect(sanitizeFilename('Smith-Jones')).toBe('smith-jones');
+  });
+
+  it('preserves apostrophes in names', () => {
+    expect(sanitizeFilename("O'Brien")).toBe("o'brien");
+  });
+});
+
+// ===========================================================================
+// Module exports
+// ===========================================================================
+describe('Module exports', () => {
   it('downloadAsImage is an async function export', async () => {
     const mod = await import('../src/download.js');
     expect(typeof mod.downloadAsImage).toBe('function');

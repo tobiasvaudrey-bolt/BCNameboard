@@ -23,12 +23,13 @@ export const SIZE_PRESETS = {
   },
 };
 
-function sanitizeFilename(name) {
-  return (name || 'passenger')
+export function sanitizeFilename(name) {
+  const cleaned = (name || 'passenger')
     .trim()
-    .replace(/[^a-zA-Z0-9\s-]/g, '')
+    .replace(/[/\\:*?"<>|]/g, '')
     .replace(/\s+/g, '-')
     .toLowerCase();
+  return cleaned || 'passenger';
 }
 
 function drawArcs(ctx, width, height, color) {
