@@ -3,8 +3,7 @@ export function parseHash(hash) {
   if (!cleaned) return { name: null, theme: null };
 
   const params = new URLSearchParams(cleaned);
-  const rawName = params.get('name');
-  const name = rawName !== null ? decodeURIComponent(rawName) : null;
+  const name = params.get('name');
   const theme = params.get('theme') || null;
   return { name, theme };
 }
