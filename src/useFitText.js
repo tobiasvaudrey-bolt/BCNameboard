@@ -14,9 +14,9 @@ export function useFitText(text, deps = []) {
     if (cw === 0 || ch === 0) return;
 
     let lo = 10;
-    let hi = Math.min(300, Math.floor(ch * 0.85));
-    const maxW = cw * 0.9;
-    const maxH = ch * 0.75;
+    let hi = Math.min(500, Math.floor(ch * 0.95));
+    const maxW = cw * 0.94;
+    const maxH = ch * 0.88;
 
     while (hi - lo > 1) {
       const mid = Math.floor((lo + hi) / 2);

@@ -187,7 +187,7 @@ export function DisplayScreen({
             role="heading"
             aria-level="1"
             tabIndex={-1}
-            className="text-center break-words px-[5vw] max-w-full max-h-full outline-none font-script"
+            className="text-center break-words px-[3vw] max-w-full max-h-full outline-none font-script"
             style={{ fontWeight: 700 }}
           >
             {name}
