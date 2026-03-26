@@ -10,16 +10,16 @@ import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
 import { downloadAsImage, downloadAsPDF, SIZE_PRESETS } from './download';
 
-const ARC_RADII = [62, 76, 90, 104];
+const ARC_RADII = [45, 65, 85, 105];
 
 function DecorativeArcs({ color }) {
-  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 7, opacity: 0.65 };
+  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 4, opacity: 0.55 };
 
   return (
     <>
       <svg
         className="absolute pointer-events-none"
-        style={{ width: '80vh', height: '80vh', top: '-40vh', right: '-40vh' }}
+        style={{ width: '90vh', height: '90vh', top: '-45vh', right: '-45vh' }}
         viewBox="-100 -100 200 200"
       >
         {ARC_RADII.map((r) => (
@@ -29,7 +29,7 @@ function DecorativeArcs({ color }) {
 
       <svg
         className="absolute pointer-events-none"
-        style={{ width: '80vh', height: '80vh', bottom: '-40vh', left: '-40vh' }}
+        style={{ width: '90vh', height: '90vh', bottom: '-45vh', left: '-45vh' }}
         viewBox="-100 -100 200 200"
       >
         {ARC_RADII.map((r) => (

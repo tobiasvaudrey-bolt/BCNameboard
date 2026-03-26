@@ -63,12 +63,12 @@ export function sanitizeFilename(name) {
   return cleaned || 'passenger';
 }
 
-const CANVAS_ARC_FRACTIONS = [0.31, 0.38, 0.45, 0.52];
+const CANVAS_ARC_FRACTIONS = [0.20, 0.29, 0.38, 0.47];
 
 function drawArcs(ctx, width, height, color) {
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(3, height * 0.014);
-  ctx.globalAlpha = 0.65;
+  ctx.lineWidth = Math.max(2, height * 0.008);
+  ctx.globalAlpha = 0.55;
 
   for (const frac of CANVAS_ARC_FRACTIONS) {
     const radius = height * frac;
