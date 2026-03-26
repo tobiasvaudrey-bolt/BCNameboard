@@ -63,26 +63,35 @@ export function sanitizeFilename(name) {
   return cleaned || 'passenger';
 }
 
-const CANVAS_ARC_FRACTIONS = [0.20, 0.29, 0.38, 0.47];
+function rotateImage180(img) {
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const cx = c.getContext('2d');
+  cx.translate(c.width / 2, c.height / 2);
+  cx.rotate(Math.PI);
+  cx.drawImage(img, -img.width / 2, -img.height / 2);
+  return c;
+}
 
-function drawArcs(ctx, width, height, color) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(2, height * 0.008);
-  ctx.globalAlpha = 0.55;
-
-  for (const frac of CANVAS_ARC_FRACTIONS) {
-    const radius = height * frac;
-
-    ctx.beginPath();
-    ctx.arc(width, 0, radius, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(0, height, radius, 0, Math.PI * 2);
-    ctx.stroke();
+async function drawArcs(ctx, width, height) {
+  const cSrc = `${import.meta.env.BASE_URL}c-element.png`;
+  let img;
+  try {
+    img = await loadImage(cSrc);
+  } catch {
+    return;
   }
 
-  ctx.globalAlpha = 1;
+  const S = height * 1.1;
+  ctx.globalCompositeOperation = 'lighten';
+
+  ctx.drawImage(img, width - S / 2, -S / 2, S, S);
+
+  const rotated = rotateImage180(img);
+  ctx.drawImage(rotated, -S / 2, height - S / 2, S, S);
+
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 function wrapLines(ctx, text, maxWidth) {
@@ -154,7 +163,7 @@ async function renderToCanvas(name, theme, preset) {
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, width, height);
 
-  drawArcs(ctx, width, height, theme.accent);
+  await drawArcs(ctx, width, height);
 
   ctx.fillStyle = theme.text;
 

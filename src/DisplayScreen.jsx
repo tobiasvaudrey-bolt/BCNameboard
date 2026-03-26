@@ -10,32 +10,29 @@ import { useWakeLock } from './useWakeLock';
 import { useFullscreen } from './useFullscreen';
 import { downloadAsImage, downloadAsPDF, SIZE_PRESETS } from './download';
 
-const ARC_RADII = [45, 65, 85, 105];
+const cElementSrc = `${import.meta.env.BASE_URL}c-element.png`;
 
-function DecorativeArcs({ color }) {
-  const strokeProps = { stroke: color, fill: 'none', strokeWidth: 4, opacity: 0.55 };
+function DecorativeArcs() {
+  const imgStyle = {
+    width: '110vh',
+    height: '110vh',
+    mixBlendMode: 'lighten',
+  };
 
   return (
     <>
-      <svg
+      <img
+        src={cElementSrc}
+        alt=""
         className="absolute pointer-events-none"
-        style={{ width: '90vh', height: '90vh', top: '-45vh', right: '-45vh' }}
-        viewBox="-100 -100 200 200"
-      >
-        {ARC_RADII.map((r) => (
-          <circle key={`tr-${r}`} cx="0" cy="0" r={r} {...strokeProps} />
-        ))}
-      </svg>
-
-      <svg
+        style={{ ...imgStyle, top: '-55vh', right: '-55vh' }}
+      />
+      <img
+        src={cElementSrc}
+        alt=""
         className="absolute pointer-events-none"
-        style={{ width: '90vh', height: '90vh', bottom: '-45vh', left: '-45vh' }}
-        viewBox="-100 -100 200 200"
-      >
-        {ARC_RADII.map((r) => (
-          <circle key={`bl-${r}`} cx="0" cy="0" r={r} {...strokeProps} />
-        ))}
-      </svg>
+        style={{ ...imgStyle, bottom: '-55vh', left: '-55vh', transform: 'rotate(180deg)' }}
+      />
     </>
   );
 }
@@ -167,7 +164,7 @@ export function DisplayScreen({
       onClick={toggleToolbar}
       onMouseMove={handleMouseMove}
     >
-      <DecorativeArcs color={t.accent} />
+      <DecorativeArcs />
 
       <div className="relative flex flex-col items-center h-full w-full z-[1]">
         <div
